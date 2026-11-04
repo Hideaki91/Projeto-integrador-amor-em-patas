@@ -44,5 +44,16 @@
 <div class="table-wrap"><table><thead><tr><th>Animal</th><th>Adotante</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead><tbody id="adoption-rows"></tbody></table></div></section>
 </main>
 <footer><a class="brand light" href="#"><span class="paw">🐾</span><span><b>Amor em Patas</b><small>Mais amor, mais finais felizes.</small></span></a><p>Feito com carinho por quem acredita na adoção responsável. ♥</p></footer>
-<div id="toast" role="status" aria-live="polite"></div><script src="/app.js"></script>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- Modal / Lightbox para ver a foto do animal -->
+<dialog id="photo-dialog" class="lightbox-modal">
+  <button class="close-btn" type="button" onclick="closeGallery()" aria-label="Fechar">&times;</button>
+  <div class="lightbox-content">
+    <img id="lightbox-img" src="" alt="Foto expandida">
+  </div>
+  <p id="lightbox-caption" class="lightbox-caption"></p>
+</dialog>
+
+<script src="/app.js"></script>
 </body></html>
