@@ -68,5 +68,34 @@
 
 <!-- Importa o app.js corretamente -->
 <script src="/app.js"></script>
+  <!-- MODAL / ÁLBUM DE FOTOS -->
+  <dialog id="photo-dialog" class="lightbox-modal">
+    <button class="close-btn" type="button" onclick="closeGallery()" aria-label="Fechar">&times;</button>
+    <button class="lightbox-nav lightbox-prev" id="album-prev" onclick="trocarFoto(-1)" aria-label="Foto anterior">&#10094;</button>
+    <div class="lightbox-content">
+      <img id="lightbox-img" src="" alt="Foto expandida">
+    </div>
+    <button class="lightbox-nav lightbox-next" id="album-next" onclick="trocarFoto(1)" aria-label="Próxima foto">&#10095;</button>
+    <p id="lightbox-caption" class="lightbox-caption"></p>
+  </dialog>
+
+  <!-- ============================================== -->
+  <!-- INÍCIO DO WIDGET VLIBRAS (LIBRAS)             -->
+  <!-- ============================================== -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+  <!-- FIM DO WIDGET VLIBRAS -->
+
+  <!-- Script da sua aplicação -->
+  <script src="/app.js"></script>
+
 </body>
 </html>
