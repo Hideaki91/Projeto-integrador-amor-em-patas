@@ -12,10 +12,18 @@ module.exports = (supabase) => {
     }
   });
 
-  router.post('/', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
       const { nome, especie, porte, idade, descricao, foto_url } = req.body;
-      const { data, error } = await supabase.from('animais').insert([{ nome, especie, porte, idade, descricao, foto_url }]).select();
+
+      // Se vier uma lista de fotos, junta todas separadas por vírgula para salvar no banco
+      const fotosParaSalvar = Array.isArray(foto_url) ? foto_url.join(',') : foto_url;
+
+      const { data, error } = await supabase
+        .from('animais')
+        .insert([{ nome, especie, porte, idade, descricao, foto_url: fotosParaSalvar }])
+        .select();
+
       if (error) throw error;
       return res.status(201).json(data[0]);
     } catch (err) {
