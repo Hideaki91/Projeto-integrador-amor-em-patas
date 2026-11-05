@@ -18,17 +18,35 @@ async function loadAll() {
     renderAnimals(); renderPeople('donors'); renderPeople('adopters'); renderAdoptions(); fillSelects();
   } catch(e) { toast(e.message); }
 }
-
 function renderAnimals() {
   const term=($('#search').value||'').toLowerCase();
   const items=state.animals.filter(a=>`${a.name} ${a.species}`.toLowerCase().includes(term));
-  $('#animal-cards').innerHTML=items.length?items.map(a=>`<article class="animal-card">
-    ${a.photo?`<img src="${escapeHtml(a.photo)}" alt="Foto de ${escapeHtml(a.name)}" style="cursor:pointer;" onclick="openGallery('${escapeHtml(a.photo)}', '${escapeHtml(a.name)}')">`:`<div class="no-photo" aria-label="Sem foto">🐾</div>`}
-    <div class="animal-info"><h3>${escapeHtml(a.name)}</h3><p>🐾 ${escapeHtml(a.species)} · ${escapeHtml(a.sex)}</p><p>◷ ${a.age} ${a.age==1?'ano':'anos'} · Porte ${escapeHtml(a.size.toLowerCase())}</p>
-    <span class="status ${a.status==='Disponível'?'':'other'}">${escapeHtml(a.status)}</span>${a.description?`<p>${escapeHtml(a.description)}</p>`:''}
-    ${a.status==='Disponível'?`<a class="btn" href="#adocoes" onclick="prefillAnimal(${a.id})">Quero adotar →</a>`:''}${state.isAdmin?`<div style="display:flex;gap:8px;margin-top:8px"><button class="action" style="flex:1" onclick="editAnimal(${a.id})">Editar animal</button><button class="action danger" style="flex:1" onclick="deleteAnimal(${a.id})">Excluir animal</button></div>`:''}</div></article>`).join(''):'<p class="empty">Nenhum animal encontrado. Cadastre um novo amigo acima.</p>';
+  $('#animal-cards').innerHTML=items.length?items.map(a=>{
+    // Separa as fotos caso venham várias separadas por vírgula
+    const photos = a.photo ? String(a.photo).split(',').map(p => p.trim()).filter(Boolean) : [];
+    
+    return `<article class="animal-card">
+      <div class="animal-photos" style="display:flex; overflow-x:auto; gap:6px; scroll-snap-type:x mandatory; padding-bottom:6px;">
+        ${photos.length 
+          ? photos.map(p => `<img src="${escapeHtml(p)}" alt="Foto de ${escapeHtml(a.name)}" style="height:190px; width:100%; object-fit:cover; border-radius:8px; flex-shrink:0;">`).join('')
+          : `<div class="no-photo" aria-label="Sem foto">🐾</div>`
+        }
+      </div>
+      <div class="animal-info">
+        <h3>${escapeHtml(a.name)}</h3>
+        <p>🐾 ${escapeHtml(a.species)} · ${escapeHtml(a.sex)}</p>
+        <p>◷ ${a.age} ${a.age==1?'ano':'anos'} · Porte ${escapeHtml(a.size.toLowerCase())}</p>
+        <span class="status ${a.status==='Disponível'?'':'other'}">${escapeHtml(a.status)}</span>
+        ${a.description?`<p>${escapeHtml(a.description)}</p>`:''}
+        ${a.status==='Disponível'?`<a class="btn" href="#adocoes" onclick="prefillAnimal(${a.id})">Quero adotar →</a>`:''}
+        ${state.isAdmin?`<div style="display:flex;gap:8px;margin-top:8px">
+          <button class="action" style="flex:1" onclick="editAnimal(${a.id})">Editar animal</button>
+          <button class="action danger" style="flex:1" onclick="deleteAnimal(${a.id})">Excluir animal</button>
+        </div>`:''}
+      </div>
+    </article>`;
+  }).join(''):'<p class="empty">Nenhum animal encontrado. Cadastre um novo amigo acima.</p>';
 }
-
 function renderPeople(type) {
   const isDonor=type==='donors', rows=state[type], target=isDonor?'#donor-rows':'#adopter-rows';
   $(target).innerHTML=rows.length?rows.map(p=>`<tr><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.email)}</td><td>${escapeHtml(p.phone)}</td><td>${escapeHtml(p.city)}</td><td><button class="action" onclick="editPerson('${type}',${p.id})">Editar</button> <button class="action danger" onclick="deletePerson('${type}',${p.id})">Excluir</button></td></tr>`).join(''):`<tr><td colspan="5" class="empty">Nenhum cadastro realizado.</td></tr>`;
