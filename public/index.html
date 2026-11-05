@@ -56,4 +56,21 @@
 </dialog>
 
 <script src="/app.js"></script>
+  <!-- MODAL DE FOTOS (LIGHTBOX) -->
+<dialog id="modalGaleria" class="modal-pet">
+  <div class="modal-conteudo">
+    <button class="btn-fechar" onclick="fecharAlbum()">&times;</button>
+    
+    <!-- Botão Foto Anterior -->
+    <button id="btnPrev" class="btn-nav btn-prev" onclick="trocarFoto(-1)">&#10094;</button>
+    
+    <div class="visualizador-foto">
+      <img id="fotoExpandida" src="" alt="Foto do pet">
+      <p id="legendaPet" class="legenda-pet"></p>
+    </div>
+
+    <!-- Botão Próxima Foto -->
+    <button id="btnNext" class="btn-nav btn-next" onclick="trocarFoto(1)">&#10095;</button>
+  </div>
+</dialog>
 </body></html>
