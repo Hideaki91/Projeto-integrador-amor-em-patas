@@ -157,7 +157,7 @@ def create_animal():
     name, species, sex, age, size = (data.get(k) for k in ('name', 'species', 'sex', 'age', 'size'))
     if not name or not species or not sex or age in (None, '') or not size:
         return error('Preencha os campos obrigatórios.')
-  try:
+    try:
         age = int(age)
         photo = save_upload(request.files.get('photo'))
     except (ValueError, TypeError) as exc:
