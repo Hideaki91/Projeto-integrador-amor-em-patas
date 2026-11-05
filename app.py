@@ -157,21 +157,24 @@ def create_animal():
     name, species, sex, age, size = (data.get(k) for k in ('name', 'species', 'sex', 'age', 'size'))
     if not name or not species or not sex or age in (None, '') or not size:
         return error('Preencha os campos obrigatórios.')
-    try:
+   try:
         age = int(age)
-        photo = save_upload(request.files.get('photo'))
+        
+        # Pega todas as fotos enviadas
+        uploaded_files = request.files.getlist('photo')
+        photo_urls = []
+
+        for f in uploaded_files:
+            if f and f.filename:
+                url = save_upload(f)
+                if url:
+                    photo_urls.append(url)
+
+        # Junta todas as fotos separadas por vírgula (ex: "foto1.jpg,foto2.jpg")
+        photo = ','.join(photo_urls) if photo_urls else None
+
     except (ValueError, TypeError) as exc:
         return error(str(exc) or 'Idade inválida.')
-
-    payload = {
-        'name': str(name).strip(),
-        'species': species,
-        'sex': sex,
-        'age': age,
-        'size': size,
-        'description': data.get('description') or '',
-        'photo': photo or '',
-        'donor_id': int(data['donor_id']) if data.get('donor_id') else None
     }
     res = supabase.table('animals').insert(payload).execute()
     return jsonify(res.data[0]), 201
