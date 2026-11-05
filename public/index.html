@@ -46,23 +46,15 @@
 <footer><a class="brand light" href="#"><span class="paw">🐾</span><span><b>Amor em Patas</b><small>Mais amor, mais finais felizes.</small></span></a><p>Feito com carinho por quem acredita na adoção responsável. ♥</p></footer>
 <div id="toast" role="status" aria-live="polite"></div>
 
-<!-- Modal / Lightbox para ver a foto do animal -->
-<dialog id="photo-dialog" class="lightbox-modal">
-  <button class="close-btn" type="button" onclick="closeGallery()" aria-label="Fechar">&times;</button>
-  <div class="lightbox-content">
-    <img id="lightbox-img" src="" alt="Foto expandida">
-  </div>
-  <p id="lightbox-caption" class="lightbox-caption"></p>
-</dialog>
-
 <script src="/app.js"></script>
-  <!-- MODAL DE FOTOS (LIGHTBOX) -->
+
+<!-- MODAL DE FOTOS (LIGHTBOX) -->
 <dialog id="modalGaleria" class="modal-pet">
   <div class="modal-conteudo">
-    <button class="btn-fechar" onclick="fecharAlbum()">&times;</button>
+    <button class="btn-fechar" onclick="fecharAlbum()" aria-label="Fechar">&times;</button>
     
     <!-- Botão Foto Anterior -->
-    <button id="btnPrev" class="btn-nav btn-prev" onclick="trocarFoto(-1)">&#10094;</button>
+    <button id="btnPrev" class="btn-nav btn-prev" onclick="trocarFoto(-1)" aria-label="Foto anterior">&#10094;</button>
     
     <div class="visualizador-foto">
       <img id="fotoExpandida" src="" alt="Foto do pet">
@@ -70,16 +62,17 @@
     </div>
 
     <!-- Botão Próxima Foto -->
-    <button id="btnNext" class="btn-nav btn-next" onclick="trocarFoto(1)">&#10095;</button>
+    <button id="btnNext" class="btn-nav btn-next" onclick="trocarFoto(1)" aria-label="Próxima foto">&#10095;</button>
   </div>
 </dialog>
-  <style>
-  /* Efeito de zoom na foto do animal ao passar o mouse */
-  .pet-img-clicavel {
+
+<style>
+  /* Efeito de zoom e mãozinha nas fotos dos animais */
+  #animal-cards img {
     cursor: pointer;
     transition: transform 0.25s ease, filter 0.25s ease;
   }
-  .pet-img-clicavel:hover {
+  #animal-cards img:hover {
     transform: scale(1.04);
   }
 
@@ -87,11 +80,12 @@
   dialog#modalGaleria {
     border: none;
     border-radius: 12px;
-    padding: 10px;
+    padding: 15px;
     background: #222;
     max-width: 90vw;
     max-height: 90vh;
     box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    margin: auto;
   }
 
   dialog#modalGaleria::backdrop {
@@ -122,11 +116,10 @@
     text-align: center;
   }
 
-  /* Botão fechar (X) */
   .btn-fechar {
     position: absolute;
-    top: -12px;
-    right: -8px;
+    top: -10px;
+    right: -10px;
     background: #ff4757;
     color: white;
     border: none;
@@ -139,7 +132,6 @@
     z-index: 10;
   }
 
-  /* Botões de seta para passar a foto */
   .btn-nav {
     position: absolute;
     top: 45%;
@@ -155,9 +147,18 @@
   .btn-prev { left: 5px; }
   .btn-next { right: 5px; }
 </style>
-  <script>
+
+<script>
   let fotosAtuais = [];
   let indiceFotoAtual = 0;
+
+  // Escuta cliques nas fotos mesmo depois que o app.js carregar os animais
+  document.getElementById('animal-cards').addEventListener('click', function(e) {
+    const img = e.target.closest('img');
+    if (img) {
+      abrirAlbum(img);
+    }
+  });
 
   function abrirAlbum(elemento) {
     const modal = document.getElementById('modalGaleria');
@@ -167,7 +168,6 @@
 
     const nome = elemento.getAttribute('data-nome') || elemento.alt || '';
     
-    // Tenta ler múltiplas fotos; se não tiver, usa a imagem atual
     try {
       const fotosAttr = elemento.getAttribute('data-fotos');
       fotosAtuais = fotosAttr ? JSON.parse(fotosAttr) : [elemento.src];
@@ -178,7 +178,6 @@
     indiceFotoAtual = 0;
     legendaPet.textContent = nome;
 
-    // Se tiver só 1 foto, esconde as setinhas
     if (fotosAtuais.length <= 1) {
       btnPrev.style.display = 'none';
       btnNext.style.display = 'none';
@@ -213,99 +212,7 @@
     }
   });
 </script>
-  <!-- Estrutura Global do Lightbox -->
-<div id="lightboxModal" class="lightbox-modal" role="dialog" aria-hidden="true">
-  <button class="lightbox-close" aria-label="Fechar">&times;</button>
-  <button class="lightbox-nav lightbox-prev" aria-label="Foto anterior">&#10094;</button>
-  <button class="lightbox-nav lightbox-next" aria-label="Próxima foto">&#10095;</button>
-  
-  <div class="lightbox-content">
-    <img id="lightboxImg" src="" alt="Foto expandida do pet">
-  </div>
-  
-  <div class="lightbox-caption" id="lightboxCaption"></div>
-</div>
-  <!-- Estrutura do Lightbox (que você colocou na Etapa 2) -->
-  <div id="lightboxModal" class="lightbox-modal" role="dialog" aria-hidden="true">
-    ...
-  </div>
-
-  <!-- COLE O JAVASCRIPT AQUI DENTRO: -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const modal = document.getElementById('lightboxModal');
-      const modalImg = document.getElementById('lightboxImg');
-      const caption = document.getElementById('lightboxCaption');
-      const btnClose = modal.querySelector('.lightbox-close');
-      const btnPrev = modal.querySelector('.lightbox-prev');
-      const btnNext = modal.querySelector('.lightbox-next');
-
-      let currentPhotos = [];
-      let currentIndex = 0;
-      let currentPetName = '';
-
-      document.querySelectorAll('.card-img-container').forEach(card => {
-        card.addEventListener('click', () => {
-          const rawPhotos = card.getAttribute('data-photos');
-          currentPetName = card.getAttribute('data-name') || 'Animal';
-
-          if (!rawPhotos) return;
-
-          currentPhotos = rawPhotos.split(',').map(url => url.trim());
-          currentIndex = 0;
-          openModal();
-        });
-      });
-
-      function openModal() {
-        updateModalImage();
-        modal.classList.add('active');
-        modal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-      }
-
-      function closeModal() {
-        modal.classList.remove('active');
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-      }
-
-      function updateModalImage() {
-        modalImg.src = currentPhotos[currentIndex];
-        caption.textContent = `${currentPetName} (${currentIndex + 1} de ${currentPhotos.length})`;
-
-        const displayNav = currentPhotos.length > 1 ? 'block' : 'none';
-        btnPrev.style.display = displayNav;
-        btnNext.style.display = displayNav;
-      }
-
-      function showNext() {
-        currentIndex = (currentIndex + 1) % currentPhotos.length;
-        updateModalImage();
-      }
-
-      function showPrev() {
-        currentIndex = (currentIndex - 1 + currentPhotos.length) % currentPhotos.length;
-        updateModalImage();
-      }
-
-      btnNext.addEventListener('click', (e) => { e.stopPropagation(); showNext(); });
-      btnPrev.addEventListener('click', (e) => { e.stopPropagation(); showPrev(); });
-      btnClose.addEventListener('click', closeModal);
-
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-      });
-
-      document.addEventListener('keydown', (e) => {
-        if (!modal.classList.contains('active')) return;
-
-        if (e.key === 'Escape') closeModal();
-        if (e.key === 'ArrowRight' && currentPhotos.length > 1) showNext();
-        if (e.key === 'ArrowLeft' && currentPhotos.length > 1) showPrev();
-      });
-    });
-  </script>
 
 </body>
 </html>
+
