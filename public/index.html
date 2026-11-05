@@ -225,4 +225,87 @@
   
   <div class="lightbox-caption" id="lightboxCaption"></div>
 </div>
-</body></html>
+  <!-- Estrutura do Lightbox (que você colocou na Etapa 2) -->
+  <div id="lightboxModal" class="lightbox-modal" role="dialog" aria-hidden="true">
+    ...
+  </div>
+
+  <!-- COLE O JAVASCRIPT AQUI DENTRO: -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('lightboxModal');
+      const modalImg = document.getElementById('lightboxImg');
+      const caption = document.getElementById('lightboxCaption');
+      const btnClose = modal.querySelector('.lightbox-close');
+      const btnPrev = modal.querySelector('.lightbox-prev');
+      const btnNext = modal.querySelector('.lightbox-next');
+
+      let currentPhotos = [];
+      let currentIndex = 0;
+      let currentPetName = '';
+
+      document.querySelectorAll('.card-img-container').forEach(card => {
+        card.addEventListener('click', () => {
+          const rawPhotos = card.getAttribute('data-photos');
+          currentPetName = card.getAttribute('data-name') || 'Animal';
+
+          if (!rawPhotos) return;
+
+          currentPhotos = rawPhotos.split(',').map(url => url.trim());
+          currentIndex = 0;
+          openModal();
+        });
+      });
+
+      function openModal() {
+        updateModalImage();
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      function updateModalImage() {
+        modalImg.src = currentPhotos[currentIndex];
+        caption.textContent = `${currentPetName} (${currentIndex + 1} de ${currentPhotos.length})`;
+
+        const displayNav = currentPhotos.length > 1 ? 'block' : 'none';
+        btnPrev.style.display = displayNav;
+        btnNext.style.display = displayNav;
+      }
+
+      function showNext() {
+        currentIndex = (currentIndex + 1) % currentPhotos.length;
+        updateModalImage();
+      }
+
+      function showPrev() {
+        currentIndex = (currentIndex - 1 + currentPhotos.length) % currentPhotos.length;
+        updateModalImage();
+      }
+
+      btnNext.addEventListener('click', (e) => { e.stopPropagation(); showNext(); });
+      btnPrev.addEventListener('click', (e) => { e.stopPropagation(); showPrev(); });
+      btnClose.addEventListener('click', closeModal);
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (!modal.classList.contains('active')) return;
+
+        if (e.key === 'Escape') closeModal();
+        if (e.key === 'ArrowRight' && currentPhotos.length > 1) showNext();
+        if (e.key === 'ArrowLeft' && currentPhotos.length > 1) showPrev();
+      });
+    });
+  </script>
+
+</body>
+</html>
