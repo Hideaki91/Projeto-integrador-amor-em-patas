@@ -209,6 +209,40 @@ if (photoDialog) {
     }
   });
 }
+// Dentro da sua função que renderiza os animais (ex: renderAnimals ou carregarAnimais)
+animais.forEach(animal => {
+  const card = document.createElement('div');
+  card.className = 'animal-card'; // ou a classe de card que você usa no seu projeto
+
+  // Pega a primeira foto ou uma imagem padrão
+  const fotoUrl = (animal.fotos && animal.fotos.length > 0) ? animal.fotos[0] : (animal.foto_url || 'https://via.placeholder.com/300x200?text=Sem+Foto');
+
+  card.innerHTML = `
+    <img src="${fotoUrl}" alt="${animal.name || animal.nome}">
+    <div class="card-body">
+      <h3>${animal.name || animal.nome}</h3>
+      <p><strong>${animal.species || animal.especie}</strong> • ${animal.sex || animal.sexo} • ${animal.age || animal.idade} anos</p>
+      
+      <!-- Informações novas -->
+      <p class="loc">📍 ${animal.location || animal.localizacao || 'Local não informado'}</p>
+      
+      <div class="badges">
+        <span class="badge ${(animal.vaccinated ?? animal.vacinado) ? 'ok' : 'no'}">
+          💉 ${(animal.vaccinated ?? animal.vacinado) ? 'Vacinado(a)' : 'Não vacinado'}
+        </span>
+        <span class="badge ${(animal.castrated ?? animal.castrado) ? 'ok' : 'no'}">
+          ✂️ ${(animal.castrated ?? animal.castrado) ? 'Castrado(a)' : 'Não castrado'}
+        </span>
+      </div>
+
+      ${animal.medical_conditions || animal.condicoes_medicas ? `<p class="info-extra">🩺 <strong>Saúde:</strong> ${animal.medical_conditions || animal.condicoes_medicas}</p>` : ''}
+      
+      ${animal.microchip ? `<p class="info-extra">🏷️ <strong>Microchip:</strong> ${animal.microchip}</p>` : ''}
+    </div>
+  `;
+
+  container.appendChild(card);
+});
 
 // Inicia a aplicação
 refreshAuth().then(loadAll);
