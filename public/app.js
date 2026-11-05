@@ -1,15 +1,24 @@
 const $ = (s) => document.querySelector(s);
 const state = { animals: [], donors: [], adopters: [], adoptions: [], isAdmin:false };
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
 async function api(url, options={}) {
   const res = await fetch(url, options);
   const data = await res.json().catch(()=>({}));
   if (!res.ok) throw new Error(data.error || 'Não foi possível concluir a operação.');
   return data;
 }
-function toast(message) { const el=$('#toast'); el.textContent=message; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),3500); }
+
+function toast(message) { 
+  const el=$('#toast'); 
+  el.textContent=message; 
+  el.classList.add('show'); 
+  setTimeout(()=>el.classList.remove('show'),3500); 
+}
+
 function formData(form) { return Object.fromEntries(new FormData(form).entries()); }
 function setMessage(id,msg){ $(id).textContent=msg; }
+
 async function loadAll() {
   try {
     [state.animals,state.donors,state.adopters,state.adoptions] = await Promise.all([
@@ -18,17 +27,26 @@ async function loadAll() {
     renderAnimals(); renderPeople('donors'); renderPeople('adopters'); renderAdoptions(); fillSelects();
   } catch(e) { toast(e.message); }
 }
+
+// ==========================================
+// RENDERIZAÇÃO DOS ANIMAIS (COM CLIQUE NA FOTO)
+// ==========================================
 function renderAnimals() {
   const term=($('#search').value||'').toLowerCase();
   const items=state.animals.filter(a=>`${a.name} ${a.species}`.toLowerCase().includes(term));
   $('#animal-cards').innerHTML=items.length?items.map(a=>{
-    // Separa as fotos caso venham várias separadas por vírgula
     const photos = a.photo ? String(a.photo).split(',').map(p => p.trim()).filter(Boolean) : [];
     
     return `<article class="animal-card">
       <div class="animal-photos" style="display:flex; overflow-x:auto; gap:6px; scroll-snap-type:x mandatory; padding-bottom:6px;">
         ${photos.length 
-          ? photos.map(p => `<img src="${escapeHtml(p)}" alt="Foto de ${escapeHtml(a.name)}" style="height:190px; width:100%; object-fit:cover; border-radius:8px; flex-shrink:0;">`).join('')
+          ? photos.map((p, index) => `
+              <img src="${escapeHtml(p)}" 
+                   alt="Foto de ${escapeHtml(a.name)}" 
+                   onclick="openGallery(${a.id}, ${index})"
+                   style="height:190px; width:100%; object-fit:cover; border-radius:8px; flex-shrink:0; cursor:pointer;" 
+                   title="Clique para ver foto ampliada">
+            `).join('')
           : `<div class="no-photo" aria-label="Sem foto">🐾</div>`
         }
       </div>
@@ -47,19 +65,24 @@ function renderAnimals() {
     </article>`;
   }).join(''):'<p class="empty">Nenhum animal encontrado. Cadastre um novo amigo acima.</p>';
 }
+
 function renderPeople(type) {
   const isDonor=type==='donors', rows=state[type], target=isDonor?'#donor-rows':'#adopter-rows';
   $(target).innerHTML=rows.length?rows.map(p=>`<tr><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.email)}</td><td>${escapeHtml(p.phone)}</td><td>${escapeHtml(p.city)}</td><td><button class="action" onclick="editPerson('${type}',${p.id})">Editar</button> <button class="action danger" onclick="deletePerson('${type}',${p.id})">Excluir</button></td></tr>`).join(''):`<tr><td colspan="5" class="empty">Nenhum cadastro realizado.</td></tr>`;
 }
+
 function fillSelects() {
   const donor=$('#animal-donor'), animal=$('#adoption-animal');
   donor.innerHTML='<option value="">Sem vínculo</option>'+state.donors.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
   animal.innerHTML='<option value="">Selecione um animal</option>'+state.animals.filter(a=>a.status==='Disponível').map(x=>`<option value="${x.id}">${escapeHtml(x.name)} — ${escapeHtml(x.species)}</option>`).join('');
 }
+
 function renderAdoptions(){
   $('#adoption-rows').innerHTML=state.adoptions.length?state.adoptions.map(a=>`<tr><td>${escapeHtml(a.animal_name)}</td><td>${escapeHtml(a.adopter_name)}</td><td>${escapeHtml(a.created_at)}</td><td><span class="status ${a.status==='Pendente'?'other':''}">${escapeHtml(a.status)}</span></td><td>${state.isAdmin?(a.status==='Pendente'?`<button class="action" onclick="updateAdoption(${a.id},'Aprovada')">Aprovar</button> <button class="action danger" onclick="updateAdoption(${a.id},'Recusada')">Recusar</button>`:'')+` <button class="action danger" onclick="deleteAdoption(${a.id})">Excluir</button>`:'Somente administrador'}</td></tr>`).join(''):'<tr><td colspan="5" class="empty">Ainda não há solicitações de adoção.</td></tr>';
 }
+
 window.prefillAnimal=(id)=>{ $('#adoption-animal').value=String(id); $('#adocoes').scrollIntoView({behavior:'smooth'}); };
+
 function updateAdminUI(){
   $('#admin-panel').style.display='block';
   $('#admin-login').style.display=state.isAdmin?'none':'grid';
@@ -73,22 +96,30 @@ function updateAdminUI(){
   $('#adopter-form').style.display='grid';
   $('#adoption-form').style.display='grid';
 }
+
 async function refreshAuth(){try{const r=await api('/api/auth/me');state.isAdmin=!!r.authenticated;}catch{state.isAdmin=false;}updateAdminUI();}
+
 $('#admin-open').addEventListener('click',()=>{const panel=$('#admin-panel');panel.style.display=panel.style.display==='none'?'block':'none';panel.scrollIntoView({behavior:'smooth',block:'start'});});
 $('#admin-login').addEventListener('submit',async e=>{e.preventDefault();const form=e.currentTarget;try{await api('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(formData(form))});state.isAdmin=true;form.reset();setMessage('#admin-msg','Login realizado.');updateAdminUI();await loadAll();}catch(err){setMessage('#admin-msg',err.message);}});
 $('#admin-logout').addEventListener('click',async()=>{try{await api('/api/auth/logout',{method:'POST'});}finally{state.isAdmin=false;updateAdminUI();await loadAll();}});
 $('#search').addEventListener('input',renderAnimals);
+
 $('#animal-form').addEventListener('submit',async e=>{
   e.preventDefault(); const form=e.currentTarget; const fd=new FormData(form);
   try{await api('/api/animals',{method:'POST',body:fd});form.reset();setMessage('#animal-msg','Animal cadastrado com sucesso!');await loadAll();toast('Animal cadastrado com sucesso.');}
   catch(err){setMessage('#animal-msg',err.message);}
 });
+
 async function registerForm(id, endpoint, type) {
   $(id).addEventListener('submit',async e=>{e.preventDefault();const form=e.currentTarget;try{await api(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(formData(form))});form.reset();setMessage(`#${type}-msg`,'Cadastro realizado com sucesso!');await loadAll();toast('Cadastro realizado com sucesso.');}catch(err){setMessage(`#${type}-msg`,err.message);}});
 }
+
 registerForm('#donor-form','/api/donors','donor');
 registerForm('#adopter-form','/api/adopters','adopter');
-$('#adoption-form').addEventListener('submit',async e=>{e.preventDefault();const form=e.currentTarget;try{const result=await api('/api/adoptions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(formData(form))});form.reset();setMessage('#adoption-msg',`Solicitação #${result.request_id} registrada! Status: ${result.status}. Guarde esse número para consultar com a equipe.`);await loadAll();toast('Solicitação de adoção registrada.');}catch(err){setMessage('#adoption-msg',err.message);}});
+
+$('#adoption-form').addEventListener('submit',async e=>{e.preventDefault();const form=e.currentTarget;try{const result=await api('/api/adoptions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(formData(form))});form.reset();setMessage('#adoption-msg',`Solicitação #${result.request_id} registrada! Status: ${result.status}. Guarde esse número para consultar com a equipe.`);await loadAll();toast('Solicitação de adoção registrada.');}catch(err){setMessage('#adoption-msg',err.message);}
+});
+
 window.editAnimal=async(id)=>{
   if(!state.isAdmin){toast('Somente administradores podem editar animais.');return;}
   const a=state.animals.find(x=>x.id===id);
@@ -105,6 +136,7 @@ window.editAnimal=async(id)=>{
     await loadAll(); toast('Animal atualizado com sucesso.');
   }catch(e){toast(e.message);}
 };
+
 window.deleteAnimal=async(id)=>{
   const animal=state.animals.find(a=>a.id===id);
   if(!animal)return;
@@ -112,21 +144,32 @@ window.deleteAnimal=async(id)=>{
   try{await api(`/api/animals/${id}`,{method:'DELETE'});await loadAll();toast('Animal excluído com sucesso.');}
   catch(e){toast(e.message);}
 };
+
 window.deletePerson=async(type,id)=>{if(!confirm('Deseja realmente excluir este cadastro?'))return;try{await api(`/api/${type}/${id}`,{method:'DELETE'});await loadAll();toast('Cadastro excluído.');}catch(e){toast(e.message);}};
 window.editPerson=async(type,id)=>{const p=state[type].find(x=>x.id===id);if(!p)return;const name=prompt('Nome completo:',p.name);if(name===null)return;const email=prompt('E-mail:',p.email);if(email===null)return;const phone=prompt('Telefone:',p.phone);if(phone===null)return;const city=prompt('Cidade:',p.city);if(city===null)return;try{await api(`/api/${type}/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...p,name,email,phone,city})});await loadAll();toast('Cadastro atualizado.');}catch(e){toast(e.message);}};
 window.updateAdoption=async(id,status)=>{try{await api(`/api/adoptions/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});await loadAll();toast('Status da adoção atualizado.');}catch(e){toast(e.message);}};
 window.deleteAdoption=async(id)=>{if(!confirm('Excluir esta solicitação?'))return;try{await api(`/api/adoptions/${id}`,{method:'DELETE'});await loadAll();toast('Solicitação excluída.');}catch(e){toast(e.message);}};
 
-// --- FUNÇÕES DO MODAL / LIGHTBOX DE FOTOS ---
-window.openGallery = (url, name) => {
+// ==========================================
+// FUNÇÕES DO MODAL / ÁLBUM DE FOTOS (LIGHTBOX)
+// ==========================================
+let albumPhotos = [];
+let albumIndex = 0;
+let albumPetName = '';
+
+window.openGallery = (animalId, startIndex = 0) => {
+  const animal = state.animals.find(a => a.id === animalId);
+  if (!animal || !animal.photo) return;
+
+  albumPhotos = String(animal.photo).split(',').map(p => p.trim()).filter(Boolean);
+  if (!albumPhotos.length) return;
+
+  albumPetName = animal.name;
+  albumIndex = startIndex;
+
+  atualizarVisualizacao();
   const dialog = document.getElementById('photo-dialog');
-  const img = document.getElementById('lightbox-img');
-  const caption = document.getElementById('lightbox-caption');
-  if (!dialog || !img) return;
-  
-  img.src = url;
-  if (caption) caption.textContent = name || '';
-  dialog.showModal();
+  if (dialog) dialog.showModal();
 };
 
 window.closeGallery = () => {
@@ -134,17 +177,38 @@ window.closeGallery = () => {
   if (dialog) dialog.close();
 };
 
+window.trocarFoto = (direcao) => {
+  albumIndex += direcao;
+  if (albumIndex >= albumPhotos.length) albumIndex = 0;
+  if (albumIndex < 0) albumIndex = albumPhotos.length - 1;
+  atualizarVisualizacao();
+};
+
+function atualizarVisualizacao() {
+  const img = document.getElementById('lightbox-img');
+  const caption = document.getElementById('lightbox-caption');
+  const btnPrev = document.getElementById('album-prev');
+  const btnNext = document.getElementById('album-next');
+
+  if (img) img.src = albumPhotos[albumIndex];
+  if (caption) {
+    caption.textContent = `${albumPetName} (${albumIndex + 1} de ${albumPhotos.length})`;
+  }
+
+  const displayNav = albumPhotos.length > 1 ? 'block' : 'none';
+  if (btnPrev) btnPrev.style.display = displayNav;
+  if (btnNext) btnNext.style.display = displayNav;
+}
+
 // Fechar ao clicar fora da imagem
 const photoDialog = document.getElementById('photo-dialog');
 if (photoDialog) {
   photoDialog.addEventListener('click', (e) => {
-    const rect = photoDialog.getBoundingClientRect();
-    const clickedOutside = (
-      rect.top > e.clientY || e.clientY > rect.top + rect.height ||
-      rect.left > e.clientX || e.clientX > rect.left + rect.width
-    );
-    if (clickedOutside) photoDialog.close();
+    if (e.target === photoDialog) {
+      photoDialog.close();
+    }
   });
 }
 
+// Inicia a aplicação
 refreshAuth().then(loadAll);
