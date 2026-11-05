@@ -73,4 +73,144 @@
     <button id="btnNext" class="btn-nav btn-next" onclick="trocarFoto(1)">&#10095;</button>
   </div>
 </dialog>
+  <style>
+  /* Efeito de zoom na foto do animal ao passar o mouse */
+  .pet-img-clicavel {
+    cursor: pointer;
+    transition: transform 0.25s ease, filter 0.25s ease;
+  }
+  .pet-img-clicavel:hover {
+    transform: scale(1.04);
+  }
+
+  /* Estilo do modal (janela que abre) */
+  dialog#modalGaleria {
+    border: none;
+    border-radius: 12px;
+    padding: 10px;
+    background: #222;
+    max-width: 90vw;
+    max-height: 90vh;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+  }
+
+  dialog#modalGaleria::backdrop {
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-conteudo {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .modal-conteudo img {
+    max-width: 80vw;
+    max-height: 70vh;
+    border-radius: 8px;
+    object-fit: contain;
+    display: block;
+  }
+
+  .legenda-pet {
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 10px 0 0 0;
+    text-align: center;
+  }
+
+  /* Botão fechar (X) */
+  .btn-fechar {
+    position: absolute;
+    top: -12px;
+    right: -8px;
+    background: #ff4757;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  /* Botões de seta para passar a foto */
+  .btn-nav {
+    position: absolute;
+    top: 45%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    font-size: 24px;
+    padding: 8px 14px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .btn-prev { left: 5px; }
+  .btn-next { right: 5px; }
+</style>
+  <script>
+  let fotosAtuais = [];
+  let indiceFotoAtual = 0;
+
+  function abrirAlbum(elemento) {
+    const modal = document.getElementById('modalGaleria');
+    const legendaPet = document.getElementById('legendaPet');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+
+    const nome = elemento.getAttribute('data-nome') || elemento.alt || '';
+    
+    // Tenta ler múltiplas fotos; se não tiver, usa a imagem atual
+    try {
+      const fotosAttr = elemento.getAttribute('data-fotos');
+      fotosAtuais = fotosAttr ? JSON.parse(fotosAttr) : [elemento.src];
+    } catch (e) {
+      fotosAtuais = [elemento.src];
+    }
+
+    indiceFotoAtual = 0;
+    legendaPet.textContent = nome;
+
+    // Se tiver só 1 foto, esconde as setinhas
+    if (fotosAtuais.length <= 1) {
+      btnPrev.style.display = 'none';
+      btnNext.style.display = 'none';
+    } else {
+      btnPrev.style.display = 'block';
+      btnNext.style.display = 'block';
+    }
+
+    atualizarFoto();
+    modal.showModal();
+  }
+
+  function fecharAlbum() {
+    document.getElementById('modalGaleria').close();
+  }
+
+  function trocarFoto(direcao) {
+    indiceFotoAtual += direcao;
+    if (indiceFotoAtual >= fotosAtuais.length) indiceFotoAtual = 0;
+    if (indiceFotoAtual < 0) indiceFotoAtual = fotosAtuais.length - 1;
+    atualizarFoto();
+  }
+
+  function atualizarFoto() {
+    document.getElementById('fotoExpandida').src = fotosAtuais[indiceFotoAtual];
+  }
+
+  // Fecha clicando no fundo escuro
+  document.getElementById('modalGaleria').addEventListener('click', function(e) {
+    if (e.target === this) {
+      fecharAlbum();
+    }
+  });
+</script>
 </body></html>
