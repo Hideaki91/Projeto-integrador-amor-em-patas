@@ -84,4 +84,122 @@ footer p{font-size:12px;color:#d8e1e7}
   .hero-art{min-height:220px}
   .hero-art:before{background:linear-gradient(180deg,#173d35,transparent 50%)}
   .intro{padding:38px 7%;display:block}
-  .section{padding:38px
+  .section{padding:38px 5%}
+  .section-head{align-items:start;flex-direction:column}
+  .section-head input{max-width:none}
+  .animal-grid{gap:12px}
+  .animal-card img,.animal-card .no-photo{height:135px}
+  .animal-info{padding:12px}
+  .animal-info h3{font-size:16px}
+  .form-grid,.form-grid.compact{grid-template-columns:1fr}
+  .full{grid-column:auto}
+  footer{align-items:start;flex-direction:column}
+  footer p{margin:0}
+}
+
+/* ========================================================
+   MODAL / LIGHTBOX E EFEITO DE CLIQUE NAS FOTOS
+   ======================================================== */
+
+/* Efeito de zoom suave nas fotos dos animais */
+.animal-photos img {
+  cursor: pointer;
+  transition: transform 0.25s ease, filter 0.2s ease;
+}
+
+.animal-photos img:hover {
+  transform: scale(1.04);
+  filter: brightness(0.95);
+}
+
+/* Janela Modal do Álbum */
+dialog#photo-dialog {
+  border: none;
+  border-radius: 12px;
+  padding: 24px;
+  background: #181c24;
+  color: white;
+  max-width: 90vw;
+  max-height: 90vh;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.85);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+
+/* Fundo escuro atrás do modal */
+dialog#photo-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+}
+
+.lightbox-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.lightbox-content img {
+  max-width: 80vw;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 8px;
+  display: block;
+}
+
+/* Legenda com o nome do animal e contador de fotos */
+.lightbox-caption {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #f1f1f1;
+}
+
+/* Botão Fechar (X) */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: #ff4757;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.close-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Setas de navegação (Anterior / Próxima) */
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.65);
+  color: white;
+  border: none;
+  font-size: 24px;
+  padding: 10px 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.lightbox-nav:hover {
+  background: rgba(0, 0, 0, 0.95);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.lightbox-prev { left: 16px; }
+.lightbox-next { right: 16px; }
