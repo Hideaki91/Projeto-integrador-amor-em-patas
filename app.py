@@ -96,6 +96,19 @@ def save_upload(file):
         return f'/uploads/{filename}'
 
 
+def save_multiple_uploads(files):
+    """Salva uma lista de arquivos e retorna as URLs separadas por vírgula."""
+    if not files:
+        return ''
+    urls = []
+    for file in files:
+        if file and file.filename:
+            url = save_upload(file)
+            if url:
+                urls.append(url)
+    return ','.join(urls)
+
+
 # ==========================================================
 # ROTAS PÚBLICAS / FRONTEND
 # ==========================================================
@@ -143,7 +156,6 @@ def logout():
 def get_animals():
     res = supabase.table('animals').select('*, donors(name)').order('id', desc=True).execute()
     data = res.data or []
-    # Mantém compatibilidade com donor_name esperado pelo app.js
     for item in data:
         donor = item.get('donors')
         item['donor_name'] = donor.get('name') if isinstance(donor, dict) else None
@@ -154,14 +166,26 @@ def get_animals():
 @admin_required
 def create_animal():
     data = body_data()
-    name, species, sex, age, size = (data.get(k) for k in ('name', 'species', 'sex', 'age', 'size'))
-    if not name or not species or not sex or age in (None, '') or not size:
-        return error('Preencha os campos obrigatórios.')
+    name = data.get('name')
+    species = data.get('species')
+    sex = data.get('sex')
+    age = data.get('age')
+    size = data.get('size')
+    location = data.get('location')
+
+    # Validação dos campos obrigatórios
+    if not name or not species or not sex or age in (None, '') or not size or not location:
+        return error('Preencha todos os campos obrigatórios.')
+
     try:
         age = int(age)
-        photo = save_upload(request.files.get('photo'))
+        
+        # Suporte a múltiplas fotos enviadas pelo formulário
+        files = request.files.getlist('photo')
+        photo = save_multiple_uploads(files)
+
     except (ValueError, TypeError) as exc:
-        return error(str(exc) or 'Idade inválida.')
+        return error(str(exc) or 'Idade ou arquivo inválido.')
 
     payload = {
         'name': str(name).strip(),
@@ -169,6 +193,11 @@ def create_animal():
         'sex': sex,
         'age': age,
         'size': size,
+        'location': str(location).strip(),
+        'castrated': data.get('castrated') == 'true',
+        'vaccinated': data.get('vaccinated') == 'true',
+        'microchip': data.get('microchip') or '',
+        'medical_conditions': data.get('medical_conditions') or '',
         'description': data.get('description') or '',
         'photo': photo or '',
         'donor_id': int(data['donor_id']) if data.get('donor_id') else None
@@ -197,12 +226,14 @@ def animal_detail(item_id):
 
     data = body_data()
     try:
-        photo = save_upload(request.files.get('photo')) or old.get('photo')
+        files = request.files.getlist('photo')
+        new_photos = save_multiple_uploads(files)
+        photo = new_photos if new_photos else old.get('photo', '')
         age = int(data.get('age', old['age']))
     except (ValueError, TypeError) as exc:
-        return error(str(exc) or 'Idade inválida.')
+        return error(str(exc) or 'Idade ou arquivo inválido.')
 
-    donor_id = old['donor_id']
+    donor_id = old.get('donor_id')
     if 'donor_id' in data:
         donor_id = int(data['donor_id']) if data.get('donor_id') else None
 
@@ -212,7 +243,12 @@ def animal_detail(item_id):
         'sex': data.get('sex', old['sex']),
         'age': age,
         'size': data.get('size', old['size']),
-        'description': data.get('description', old['description']),
+        'location': data.get('location', old.get('location', '')),
+        'castrated': data.get('castrated') == 'true' if 'castrated' in data else old.get('castrated', False),
+        'vaccinated': data.get('vaccinated') == 'true' if 'vaccinated' in data else old.get('vaccinated', False),
+        'microchip': data.get('microchip', old.get('microchip', '')),
+        'medical_conditions': data.get('medical_conditions', old.get('medical_conditions', '')),
+        'description': data.get('description', old.get('description', '')),
         'photo': photo,
         'donor_id': donor_id,
         'status': data.get('status', old['status'])
