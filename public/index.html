@@ -28,6 +28,40 @@
 <section id="animais" class="section"><div class="section-head"><div><span class="eyebrow">ENCONTRE SEU AMIGO</span><h2>Animais disponíveis</h2></div><input id="search" placeholder="Buscar por nome ou espécie…" aria-label="Buscar animais"></div><div id="animal-cards" class="animal-grid"><p class="muted">Carregando animais…</p></div></section>
 <section id="cadastro-animal" class="section tinted" style="display:none"><div class="section-head"><div><span class="eyebrow">NOVO RESGATE, NOVA CHANCE</span><h2>Cadastro de animal</h2></div><p class="muted">Os campos com * são obrigatórios.</p></div>
 <form id="animal-form" class="form-grid" enctype="multipart/form-data">
+  <!-- Campos já existentes -->
+  <label>Nome do animal *<input name="name" required placeholder="Ex.: Mel"></label>
+  
+  <label>Espécie *<select name="species" required><option value="">Selecione</option><option>Cachorro</option><option>Gato</option><option>Outro</option></select></label>
+  
+  <label>Sexo *<select name="sex" required><option value="">Selecione</option><option>Macho</option><option>Fêmea</option><option>Não identificado</option></select></label>
+  
+  <label>Idade aproximada (anos) *<input name="age" type="number" min="0" max="40" required placeholder="Ex.: 2"></label>
+  
+  <label>Porte *<select name="size" required><option value="">Selecione</option><option>Pequeno</option><option>Médio</option><option>Grande</option></select></label>
+  
+  <label>Doador (opcional)<select name="donor_id" id="animal-donor"><option value="">Selecione um doador</option></select></label>
+
+  <!-- ===================================================== -->
+  <!-- NOVOS CAMPOS: Localização, Saúde e Microchip         -->
+  <!-- ===================================================== -->
+  
+  <label>Localização (Cidade/Bairro) *<input name="location" required placeholder="Ex.: Araras - SP"></label>
+  
+  <label>Castrado(a) *<select name="castrated" required><option value="">Selecione</option><option value="true">Sim</option><option value="false">Não</option></select></label>
+  
+  <label>Vacinado(a) *<select name="vaccinated" required><option value="">Selecione</option><option value="true">Sim</option><option value="false">Não</option></select></label>
+  
+  <label>Número do Microchip (Opcional)<input name="microchip" placeholder="Número de identificação"></label>
+
+  <label class="full">Condições médicas / Histórico de saúde<textarea name="medical_conditions" rows="2" placeholder="Ex.: Alergia a frango, tratamento em andamento..."></textarea></label>
+  
+  <label class="full">Fotos do animal (segure Ctrl/Shift para escolher mais de uma)<input name="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
+  
+  <div class="full">
+    <button class="btn" type="submit">Salvar animal</button>
+    <span class="form-message" id="animal-msg" role="status"></span>
+  </div>
+</form>
 <label>Nome do animal *<input name="name" required placeholder="Ex.: Mel"></label><label>Espécie *<select name="species" required><option value="">Selecione</option><option>Cachorro</option><option>Gato</option><option>Outro</option></select></label>
 <label>Sexo *<select name="sex" required><option value="">Selecione</option><option>Macho</option><option>Fêmea</option><option>Não identificado</option></select></label><label>Idade aproximada (anos) *<input name="age" type="number" min="0" max="40" required placeholder="Ex.: 2"></label>
 <label>Porte *<select name="size" required><option value="">Selecione</option><option>Pequeno</option><option>Médio</option><option>Grande</option></select></label><label>Doador (opcional)<select name="donor_id" id="animal-donor"><option value="">Selecione um doador</option></select></label>
@@ -45,9 +79,6 @@
 </main>
 <footer><a class="brand light" href="#"><span class="paw">🐾</span><span><b>Amor em Patas</b><small>Mais amor, mais finais felizes.</small></span></a><p>Feito com carinho por quem acredita na adoção responsável. ♥</p></footer>
 <footer>
-  <a class="brand light" href="#"><span class="paw">🐾</span><span><b>Amor em Patas</b><small>Mais amor, mais finais felizes.</small></span></a>
-  <p>Feito com carinho por quem acredita na adoção responsável. ♥</p>
-</footer>
 
 <div id="toast" role="status" aria-live="polite"></div>
 
